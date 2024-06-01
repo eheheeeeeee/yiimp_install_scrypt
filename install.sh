@@ -5,7 +5,7 @@
 # Web: https://www.xavatar.com    
 #
 # Program:
-#   Install yiimp on Ubuntu 16.04/18.04 running Nginx, MariaDB, and php7.4
+#   Install yiimp on Ubuntu 16.04/18.04 running Nginx, MariaDB, and php7.2
 #   v0.2 (update Avril, 2020)
 # 
 ################################################################################
@@ -46,7 +46,7 @@
     echo
     echo -e "$GREEN************************************************************************$COL_RESET"
     echo -e "$GREEN Yiimp Install Script v0.2 $COL_RESET"
-    echo -e "$GREEN Install yiimp on Ubuntu 16.04/18.04 running Nginx, MariaDB, and php7.4 $COL_RESET"
+    echo -e "$GREEN Install yiimp on Ubuntu 16.04/18.04 running Nginx, MariaDB, and php7.2 $COL_RESET"
     echo -e "$GREEN************************************************************************$COL_RESET"
     echo
     sleep 3
@@ -160,10 +160,10 @@
     echo -e "$GREEN Done...$COL_RESET"
 
     
-    # Installing Installing php7.4
+    # Installing Installing php7.2
     echo
     echo
-    echo -e "$CYAN => Installing php7.4 : $COL_RESET"
+    echo -e "$CYAN => Installing php7.2 : $COL_RESET"
     echo
     sleep 3
     
@@ -174,20 +174,20 @@
     sudo apt -y update
 
     if [[ ("$DISTRO" == "16") ]]; then
-    sudo apt -y install php7.4-fpm php7.4-opcache php7.4 php7.4-common php7.4-gd php7.4-mysql php7.4-imap php7.4-cli \
-    php7.4-cgi php-pear php-auth imagemagick libruby php7.4-curl php7.4-intl php7.4-pspell mcrypt\
-    php7.4-recode php7.4-sqlite3 php7.4-tidy php7.4-xmlrpc php7.4-xsl memcached php-memcache php-imagick php-gettext php7.4-zip php7.4-mbstring
+    sudo apt -y install php7.2-fpm php7.2-opcache php7.2 php7.2-common php7.2-gd php7.2-mysql php7.2-imap php7.2-cli \
+    php7.2-cgi php-pear php-auth imagemagick libruby php7.2-curl php7.2-intl php7.2-pspell mcrypt\
+    php7.2-recode php7.2-sqlite3 php7.2-tidy php7.2-xmlrpc php7.2-xsl memcached php-memcache php-imagick php-gettext php7.2-zip php7.2-mbstring
     #sudo phpenmod mcrypt
     #sudo phpenmod mbstring
     else
-    sudo apt -y install php7.4-fpm php7.4-opcache php7.4 php7.4-common php7.4-gd php7.4-mysql php7.4-imap php7.4-cli \
-    php7.4-cgi php-pear imagemagick libruby php7.4-curl php7.4-intl php7.4-pspell mcrypt\
-    php7.4-recode php7.4-sqlite3 php7.4-tidy php7.4-xmlrpc php7.4-xsl memcached php7.4-memcache php7.4-memcached php-imagick php-gettext php7.4-zip php7.4-mbstring \
+    sudo apt -y install php7.2-fpm php7.2-opcache php7.2 php7.2-common php7.2-gd php7.2-mysql php7.2-imap php7.2-cli \
+    php7.2-cgi php-pear imagemagick libruby php7.2-curl php7.2-intl php7.2-pspell mcrypt\
+    php7.2-recode php7.2-sqlite3 php7.2-tidy php7.2-xmlrpc php7.2-xsl memcached php7.2-memcache php7.2-memcached php-imagick php-gettext php7.2-zip php7.2-mbstring \
     libpsl-dev libnghttp2-dev
     fi
     sleep 5
-    sudo systemctl start php7.4-fpm
-    sudo systemctl status php7.4-fpm | sed -n "1,3p"
+    sudo systemctl start php7.2-fpm
+    sudo systemctl status php7.2-fpm | sed -n "1,3p"
     sleep 15
     echo
     echo -e "$GREEN Done...$COL_RESET"
@@ -491,7 +491,7 @@
     
         location ~ ^/index\.php$ {
             fastcgi_split_path_info ^(.+\.php)(/.+)$;
-            fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+            fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
             fastcgi_index index.php;
             include fastcgi_params;
             fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
@@ -523,7 +523,7 @@
             deny all;
       }
         location ~ /phpmyadmin/(.+\.php)$ {
-            fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+            fastcgi_pass unix:/run/php/php7.2-fpm.sock;
             fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
             include fastcgi_params;
             include snippets/fastcgi-php.conf;
@@ -534,7 +534,7 @@
 
     sudo ln -s /etc/nginx/sites-available/$server_name.conf /etc/nginx/sites-enabled/$server_name.conf
     sudo ln -s /var/web /var/www/$server_name/html
-    sudo systemctl reload php7.4-fpm.service
+    sudo systemctl reload php7.2-fpm.service
     sudo systemctl restart nginx.service
     echo -e "$GREEN Done...$COL_RESET"
         
@@ -616,7 +616,7 @@
         
             location ~ ^/index\.php$ {
                 fastcgi_split_path_info ^(.+\.php)(/.+)$;
-                fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+                fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
                 fastcgi_index index.php;
                 include fastcgi_params;
                 fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
@@ -647,7 +647,7 @@
             deny all;
     }
         location ~ /phpmyadmin/(.+\.php)$ {
-            fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+            fastcgi_pass unix:/run/php/php7.2-fpm.sock;
             fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
             include fastcgi_params;
             include snippets/fastcgi-php.conf;
@@ -658,7 +658,7 @@
     ' | sudo -E tee /etc/nginx/sites-available/$server_name.conf >/dev/null 2>&1
     fi
     
-    sudo systemctl reload php7.4-fpm.service
+    sudo systemctl reload php7.2-fpm.service
     sudo systemctl restart nginx.service
     echo -e "$GREEN Done...$COL_RESET"
     
@@ -701,7 +701,7 @@
     
         location ~ ^/index\.php$ {
             fastcgi_split_path_info ^(.+\.php)(/.+)$;
-            fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+            fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
             fastcgi_index index.php;
             include fastcgi_params;
             fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
@@ -733,7 +733,7 @@
             deny all;
     }
         location ~ /phpmyadmin/(.+\.php)$ {
-            fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+            fastcgi_pass unix:/run/php/php7.2-fpm.sock;
             fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
             include fastcgi_params;
             include snippets/fastcgi-php.conf;
@@ -744,7 +744,7 @@
 
     sudo ln -s /etc/nginx/sites-available/$server_name.conf /etc/nginx/sites-enabled/$server_name.conf
     sudo ln -s /var/web /var/www/$server_name/html
-    sudo systemctl reload php7.4-fpm.service
+    sudo systemctl reload php7.2-fpm.service
     sudo systemctl restart nginx.service
     echo -e "$GREEN Done...$COL_RESET"
    
@@ -827,7 +827,7 @@
         
             location ~ ^/index\.php$ {
                 fastcgi_split_path_info ^(.+\.php)(/.+)$;
-                fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+                fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
                 fastcgi_index index.php;
                 include fastcgi_params;
                 fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
@@ -858,7 +858,7 @@
             deny all;
     }
         location ~ /phpmyadmin/(.+\.php)$ {
-            fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+            fastcgi_pass unix:/run/php/php7.2-fpm.sock;
             fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
             include fastcgi_params;
             include snippets/fastcgi-php.conf;
@@ -871,7 +871,7 @@
     echo -e "$GREEN Done...$COL_RESET"
 
     fi
-    sudo systemctl reload php7.4-fpm.service
+    sudo systemctl reload php7.2-fpm.service
     sudo systemctl restart nginx.service
     fi
     
@@ -1175,8 +1175,8 @@
     sudo systemctl status mysql | sed -n "1,3p"
     sudo systemctl restart nginx.service
     sudo systemctl status nginx | sed -n "1,3p"
-    sudo systemctl restart php7.4-fpm.service
-    sudo systemctl status php7.4-fpm | sed -n "1,3p"
+    sudo systemctl restart php7.2-fpm.service
+    sudo systemctl status php7.2-fpm | sed -n "1,3p"
 
 
     echo
