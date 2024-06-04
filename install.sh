@@ -1,196 +1,139 @@
 #!/bin/bash
+
 ################################################################################
 # Original Author:   crombiecrunch
 # Modified by : Xavatar (https://github.com/xavatar/yiimp_install_scrypt)
+# Modified for Ubuntu 22.04/24.04 compatibility
 # Web: https://www.xavatar.com    
 #
 # Program:
-#   Install yiimp on Ubuntu 16.04/18.04 running Nginx, MariaDB, and php7.2
-#   v0.2 (update Avril, 2020)
-# 
+#   Install yiimp on Ubuntu 22.04/24.04 running Nginx, MariaDB, and PHP 8.0
+#   v0.3 (update June, 2024)
 ################################################################################
-    
 
-    output() {
+output() {
     printf "\E[0;33;40m"
     echo $1
-    printf "\E[0m"ku
-    }
+    printf "\E[0m"
+}
 
-    displayErr() {
+displayErr() {
     echo
-    echo $1;
+    echo $1
     echo
-    exit 1;
-    }
+    exit 1
+}
 
-    #Add user group sudo + no password
-    whoami=`whoami`
-    sudo usermod -aG sudo ${whoami}
-    echo '# yiimp
-    # It needs passwordless sudo functionality.
-    '""''"${whoami}"''""' ALL=(ALL) NOPASSWD:ALL
-    ' | sudo -E tee /etc/sudoers.d/${whoami} >/dev/null 2>&1
-    
-    #Copy needed files
-    sudo cp -r conf/functions.sh /etc/
-    sudo cp -r utils/screen-scrypt.sh /etc/
-    sudo cp -r conf/editconf.py /usr/bin/
-    sudo chmod +x /usr/bin/editconf.py
-    sudo chmod +x /etc/screen-scrypt.sh
+# Add user group sudo + no password
+whoami=$(whoami)
+sudo usermod -aG sudo ${whoami}
+echo '# yiimp
+# It needs passwordless sudo functionality.
+'"${whoami}"' ALL=(ALL) NOPASSWD:ALL
+' | sudo -E tee /etc/sudoers.d/${whoami} >/dev/null 2>&1
 
-    source /etc/functions.sh
+# Copy needed files
+sudo cp -r conf/functions.sh /etc/
+sudo cp -r utils/screen-scrypt.sh /etc/
+sudo cp -r conf/editconf.py /usr/bin/
+sudo chmod +x /usr/bin/editconf.py
+sudo chmod +x /etc/screen-scrypt.sh
 
+source /etc/functions.sh
 
-    clear
-    echo
-    echo -e "$GREEN************************************************************************$COL_RESET"
-    echo -e "$GREEN Yiimp Install Script v0.2 $COL_RESET"
-    echo -e "$GREEN Install yiimp on Ubuntu 16.04/18.04 running Nginx, MariaDB, and php7.2 $COL_RESET"
-    echo -e "$GREEN************************************************************************$COL_RESET"
-    echo
-    sleep 3
+clear
+echo
+echo -e "$GREEN************************************************************************$COL_RESET"
+echo -e "$GREEN Yiimp Install Script v0.3 $COL_RESET"
+echo -e "$GREEN Install yiimp on Ubuntu 22.04/24.04 running Nginx, MariaDB, and PHP 8.0 $COL_RESET"
+echo -e "$GREEN************************************************************************$COL_RESET"
+echo
+sleep 3
 
+# Update system and install required packages
+echo
+echo
+echo -e "$CYAN => Updating system and installing required packages :$COL_RESET"
+echo 
+sleep 3
 
-    # Update package and Upgrade Ubuntu
-    echo
-    echo
-    echo -e "$CYAN => Updating system and installing required packages :$COL_RESET"
-    echo 
-    sleep 3
-        
-    sudo apt -y update 
-    sudo apt -y upgrade
-    sudo apt -y autoremove
-    sudo apt-get install -y software-properties-common
-    sudo apt -y install dialog python3 python3-pip acl nano apt-transport-https
-    echo -e "$GREEN Done...$COL_RESET"
+sudo apt -y update 
+sudo apt -y upgrade
+sudo apt -y autoremove
+sudo apt-get install -y software-properties-common
+sudo apt -y install dialog python3 python3-pip acl nano apt-transport-https
+echo -e "$GREEN Done...$COL_RESET"
 
-
-    source conf/prerequisite.sh
-    sleep 3
-    source conf/getip.sh
-
-
-    echo 'PUBLIC_IP='"${PUBLIC_IP}"'
-    PUBLIC_IPV6='"${PUBLIC_IPV6}"'
-    DISTRO='"${DISTRO}"'
-    PRIVATE_IP='"${PRIVATE_IP}"'' | sudo -E tee conf/pool.conf >/dev/null 2>&1
-
-    echo
-    echo
-    echo -e "$RED Make sure you double check before hitting enter! Only one shot at these! $COL_RESET"
-    echo
-    #read -e -p "Enter time zone (e.g. America/New_York) : " TIME
-    read -e -p "Domain Name (no http:// or www. just : example.com or pool.example.com or 185.22.24.26) : " server_name
-    read -e -p "Are you using a subdomain (mycryptopool.example.com?) [y/N] : " sub_domain
-    read -e -p "Enter support email (e.g. admin@example.com) : " EMAIL
-    read -e -p "Set Pool to AutoExchange? i.e. mine any coin with BTC address? [y/N] : " BTC
-    #read -e -p "Please enter a new location for /site/adminRights this is to customize the Admin Panel entrance url (e.g. myAdminpanel) : " admin_panel
-    read -e -p "Enter the Public IP of the system you will use to access the admin panel (http://www.whatsmyip.org/) : " Public
-    read -e -p "Install Fail2ban? [Y/n] : " install_fail2ban
-    read -e -p "Install UFW and configure ports? [Y/n] : " UFW
-    read -e -p "Install LetsEncrypt SSL? IMPORTANT! You MUST have your domain name pointed to this server prior to running the script!! [Y/n]: " ssl_install
-    
-    
-    # Switch Aptitude
-    #echo
-    #echo -e "$CYAN Switching to Aptitude $COL_RESET"
-    #echo 
-    #sleep 3
-    #sudo apt -y install aptitude
-    #echo -e "$GREEN Done...$COL_RESET $COL_RESET"
-
-
-    # Installing Nginx
-    echo
+# Install Nginx
+install_nginx() {
     echo
     echo -e "$CYAN => Installing Nginx server : $COL_RESET"
     echo
     sleep 3
-    
+
     if [ -f /usr/sbin/apache2 ]; then
-    echo -e "Removing apache..."
-    sudo apt-get -y purge apache2 apache2-*
-    sudo apt-get -y --purge autoremove
+        echo -e "Removing Apache..."
+        sudo apt-get -y purge apache2 apache2-* || displayErr "Failed to remove Apache"
+        sudo apt-get -y --purge autoremove || displayErr "Failed to autoremove Apache dependencies"
     fi
 
-    sudo apt -y install nginx
-    sudo rm /etc/nginx/sites-enabled/default
-    sudo systemctl start nginx.service
-    sudo systemctl enable nginx.service
-    sudo systemctl start cron.service
-    sudo systemctl enable cron.service
+    sudo apt -y install nginx || displayErr "Failed to install Nginx"
+    sudo rm /etc/nginx/sites-enabled/default || displayErr "Failed to remove default Nginx site"
+    sudo systemctl start nginx.service || displayErr "Failed to start Nginx"
+    sudo systemctl enable nginx.service || displayErr "Failed to enable Nginx"
+    sudo systemctl start cron.service || displayErr "Failed to start cron service"
+    sudo systemctl enable cron.service || displayErr "Failed to enable cron service"
+    
     sleep 5
     sudo systemctl status nginx | sed -n "1,3p"
     sleep 15
-    echo
     echo -e "$GREEN Done...$COL_RESET"
-    
+}
 
-    # Making Nginx a bit hard
-    echo 'map $http_user_agent $blockedagent {
-    default         0;
-    ~*malicious     1;
-    ~*bot           1;
-    ~*backdoor      1;
-    ~*crawler       1;
-    ~*bandit        1;
-    }
-    ' | sudo -E tee /etc/nginx/blockuseragents.rules >/dev/null 2>&1
-    
-    
-    # Installing Mariadb
-    echo
-    echo
-    echo -e "$CYAN => Installing Mariadb Server : $COL_RESET"
-    echo
-    sleep 3
-        
-    # Create random password
-    rootpasswd=$(openssl rand -base64 12)
-    export DEBIAN_FRONTEND="noninteractive"
-    sudo apt -y install mariadb-server
-    sudo systemctl enable mariadb.service
-    sudo systemctl start mariadb.service
-    sleep 5
-    sudo systemctl status mariadb | sed -n "1,3p"
-    sleep 15
-    echo
-    echo -e "$GREEN Done...$COL_RESET"
+# Call the function to install Nginx
+install_nginx
 
-    
-    # Installing Installing php7.2
-    echo
-    echo
-    echo -e "$CYAN => Installing php7.2 : $COL_RESET"
-    echo
-    sleep 3
-    
-    source conf/pool.conf
-    if [ ! -f /etc/apt/sources.list.d/ondrej-php-bionic.list ]; then
+# Install MariaDB
+echo
+echo
+echo -e "$CYAN => Installing MariaDB Server : $COL_RESET"
+echo
+sleep 3
+
+# Create random password
+rootpasswd=$(openssl rand -base64 12)
+export DEBIAN_FRONTEND="noninteractive"
+sudo apt -y install mariadb-server || displayErr "Failed to install MariaDB"
+sudo systemctl enable mariadb.service || displayErr "Failed to enable MariaDB"
+sudo systemctl start mariadb.service || displayErr "Failed to start MariaDB"
+sleep 5
+sudo systemctl status mariadb | sed -n "1,3p"
+sleep 15
+echo -e "$GREEN Done...$COL_RESET"
+
+# Install PHP 8.0
+echo
+echo
+echo -e "$CYAN => Installing PHP 8.0 : $COL_RESET"
+echo
+sleep 3
+
+source conf/pool.conf
+if [ ! -f /etc/apt/sources.list.d/ondrej-php-focal.list ]; then
     sudo add-apt-repository -y ppa:ondrej/php
-    fi
-    sudo apt -y update
+fi
+sudo apt -y update
 
-    if [[ ("$DISTRO" == "16") ]]; then
-    sudo apt -y install php7.2-fpm php7.2-opcache php7.2 php7.2-common php7.2-gd php7.2-mysql php7.2-imap php7.2-cli \
-    php7.2-cgi php-pear php-auth imagemagick libruby php7.2-curl php7.2-intl php7.2-pspell mcrypt\
-    php7.2-recode php7.2-sqlite3 php7.2-tidy php7.2-xmlrpc php7.2-xsl memcached php-memcache php-imagick php-gettext php7.2-zip php7.2-mbstring
-    #sudo phpenmod mcrypt
-    #sudo phpenmod mbstring
-    else
-    sudo apt -y install php7.2-fpm php7.2-opcache php7.2 php7.2-common php7.2-gd php7.2-mysql php7.2-imap php7.2-cli \
-    php7.2-cgi php-pear imagemagick libruby php7.2-curl php7.2-intl php7.2-pspell mcrypt\
-    php7.2-recode php7.2-sqlite3 php7.2-tidy php7.2-xmlrpc php7.2-xsl memcached php7.2-memcache php7.2-memcached php-imagick php-gettext php7.2-zip php7.2-mbstring \
-    libpsl-dev libnghttp2-dev
-    fi
-    sleep 5
-    sudo systemctl start php7.2-fpm
-    sudo systemctl status php7.2-fpm | sed -n "1,3p"
-    sleep 15
-    echo
-    echo -e "$GREEN Done...$COL_RESET"
+sudo apt -y install php8.0-fpm php8.0-opcache php8.0 php8.0-common php8.0-gd php8.0-mysql php8.0-imap php8.0-cli \
+php8.0-cgi php-pear php-auth imagemagick libruby php8.0-curl php8.0-intl php8.0-pspell mcrypt\
+php8.0-recode php8.0-sqlite3 php8.0-tidy php8.0-xmlrpc php8.0-xsl memcached php8.0-memcache php8.0-imagick php-gettext php8.0-zip php8.0-mbstring
+
+sleep 5
+sudo systemctl start php8.0-fpm
+sudo systemctl status php8.0-fpm | sed -n "1,3p"
+sleep 15
+echo -e "$GREEN Done...$COL_RESET"
+
 
 
     
